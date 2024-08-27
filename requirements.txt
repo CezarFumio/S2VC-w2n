@@ -3,7 +3,7 @@ gdown
 tqdm
 librosa
 soundfile
-torch>=1.7.1
+torch
 torchaudio==0.7.2
 argparse
 matplotlib
