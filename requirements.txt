@@ -4,7 +4,7 @@ tqdm
 librosa
 soundfile
 torch
-torchaudio==0.7.2
+torchaudio>=0.7.2
 argparse
 matplotlib
 tensorboard
