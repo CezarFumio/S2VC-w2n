@@ -10,7 +10,7 @@ class FeatureExtractor:
         self.device = device
         if (
             feature_name == "apc"
-            or feature_name == "cpc"
+            or feature_name == "modified_cpc"
             or feature_name == "timit_posteriorgram"
             or feature_name == "fbank"
         ):
