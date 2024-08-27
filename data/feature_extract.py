@@ -3,6 +3,7 @@ from functools import partial
 from multiprocessing import Pool, cpu_count
 from models import load_pretrained_wav2vec
 from data import log_mel_spectrogram
+from s3prl.nn import S3PRLUpstream
 
 
 class FeatureExtractor:
@@ -15,7 +16,7 @@ class FeatureExtractor:
             or feature_name == "fbank"
         ):
             self.extractor = (
-                torch.hub.load("s3prl/s3prl:v0.3.4", feature_name, refresh=True).eval().to(device)
+                S3PRLUpstream(feature_name).eval().to(device)
             )
             self.mode = 1
         elif feature_name == "wav2vec2":
