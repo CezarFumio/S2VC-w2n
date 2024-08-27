@@ -16,7 +16,7 @@ from torch.nn import (
     Sigmoid,
     InstanceNorm1d,
 )
-from torch.nn.modules.linear import _LinearWithBias
+from torch.nn.modules.linear import NonDynamicallyQuantizableLinear as _LinearWithBias
 
 
 class Smoother(Module):
