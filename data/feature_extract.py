@@ -55,9 +55,9 @@ class FeatureExtractor:
             )
             exit()
 
-    def get_feature(self, wavs):
+    def get_feature(self, wavs, wavs_len):
         if self.mode == 1:
-            return self.extractor(wavs)
+            return self.extractor(wavs, wavs_len)
         elif self.mode == 2:
             feats = []
             for wav in wavs:
