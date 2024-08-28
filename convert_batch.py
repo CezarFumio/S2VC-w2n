@@ -17,6 +17,8 @@ from data import load_wav, log_mel_spectrogram, plot_mel, plot_attn
 from data.feature_extract import FeatureExtractor
 from models import load_pretrained_wav2vec
 
+import torch.nn.functional as F
+
 
 def parse_args():
     """Parse command-line arguments."""
@@ -74,20 +76,31 @@ def main(
         for pair_name, pair in tqdm(infos.items()):
             src_wav = load_wav(pair["source"], sample_rate, trim=True)
             src_wav = torch.FloatTensor(src_wav).to(device)
+            src_wav = src_wav.unsqueeze(0)
+            print(pair["source"])
+            
+            src_wavs_len = [src_wav.size(1)]
+            src_wavs_len = torch.LongTensor(src_wavs_len).to(device)
+            print(src_wavs_len)
 
             tgt_wavs = pool.map(path2wav, pair["target"])
             tgt_wavs = [torch.FloatTensor(tgt_wav).to(device)
                         for tgt_wav in tgt_wavs]
 
+            tgt_wavs_len = [tgt_wav.size(0) for tgt_wav in tgt_wavs]
+            tgt_wavs_len = torch.LongTensor(tgt_wavs_len).to(device)
+            
+            max_len = max([t.size(0) for t in tgt_wavs])
+            padded_wavs = [F.pad(t, (0, max_len - t.size(0))) for t in tgt_wavs]
+            tgt_wavs = torch.stack(padded_wavs)
+            
             with torch.no_grad():
-                tgt_mels = ref_feat_model.get_feature(tgt_wavs)
-                src_mel = (ref_feat_model.get_feature([src_wav])[0].transpose(
-                        0, 1).unsqueeze(0).to(device))
+                tgt_mels = ref_feat_model.get_feature(tgt_wavs, tgt_wavs_len)
+                #src_mel = (ref_feat_model.get_feature(src_wav, src_wavs_len)[0].transpose(0, 1).unsqueeze(0).to(device))
                 tgt_mels = [tgt_mel.cpu() for tgt_mel in tgt_mels]
                 tgt_mel = np.concatenate(tgt_mels, axis=0)
                 tgt_mel = torch.FloatTensor(tgt_mel.T).unsqueeze(0).to(device)
-                src_feat = src_feat_model.get_feature([src_wav])[
-                    0].unsqueeze(0)
+                src_feat = ref_feat_model.get_feature(src_wav, src_wavs_len)[0].unsqueeze(0)
                 out_mel, attn = model(src_feat, tgt_mel)
 
                 out_mel = out_mel.transpose(1, 2).squeeze(0)
